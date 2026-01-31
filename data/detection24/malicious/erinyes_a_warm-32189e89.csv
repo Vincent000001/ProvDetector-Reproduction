@@ -1,0 +1,9 @@
+sourceId,sourceType,destinationId,destinationType,action,timestamp,processName
+10.1.80.247:59402,socket,unknown,process,POST,1727687757561820,32189e89
+unknwon,process,gateway:8080,socket,POST,1727687757831344,32189e89
+unknwon,process,10.1.80.247:8080,socket,POST,1727687757831505,32189e89
+10.1.80.247:32776,socket,unknown,process,POST,1727687757831592,32189e89
+unknwon,process,10.1.80.247:32776,socket,RESPONSE,1727687757862608,32189e89
+10.1.80.247:8080,socket,unknown,process,RESPONSE,1727687757863650,32189e89
+gateway:8080,socket,unknown,process,RESPONSE,1727687757863754,32189e89
+unknwon,process,10.1.80.247:59402,socket,RESPONSE,1727687758000731,32189e89
