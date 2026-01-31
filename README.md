@@ -20,7 +20,7 @@ It implements the core pipeline:
 > while enforcing **stronger no-leakage constraints** than many naive reproductions.
 
 Project directory structure
-‘’‘
+```
 ProvDetector-Reproduction/
 ├── data/
 │   └── detection24/
@@ -44,8 +44,7 @@ ProvDetector-Reproduction/
 ├── requirements.txt
 ├── README.md                      # 主 README
 └── reproduction.md                # 论文复现说明（强烈建议）
-’‘’
-
+```
 ---
 
 ## 1) Installation
