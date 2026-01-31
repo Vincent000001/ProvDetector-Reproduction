@@ -1,135 +1,171 @@
-# ProvDetector-Reproduction
-本项目用于复现论文《You are what you do: hunting stealthy malware via data provenance analysis》的实验ProvDetector
-# ProvDetector Reproduction (Leak-Free, Group-Split)
+# ProvDetector 论文复现实验
 
-This repository provides a **scientific, reproducible, leak-free** reproduction of the method described in:
+> 目标：**完整、严谨、可复现**地复现 ProvDetector 论文中“Path→Sentence → 频次库 → Rarest Paths → Doc2Vec(PV-DM) → LOF”这一条核心流水线，
+> 并给出**可重复跑出的指标**与**避免数据泄漏**的实现细节。
 
-> *You Are What You Do: Hunting Stealthy Malware via Data Provenance Analysis* (ProvDetector)
+本仓库已经内置真实数据，做到**开箱即跑**。
 
-It implements the core pipeline:
-
-- **Path-to-Sentence** conversion of provenance paths
-- **Frequency Database** of path sentences (to select rarest paths)
-- **Doc2Vec (PV-DM)** representation learning
-- **LOF anomaly detection** trained on **benign only** (paper-style)
-- **Group-aware split** to prevent leakage when benign logs are split into fragments (e.g., `*_p7.csv`)
-- **Leak-free representation learning**: frequency DB + Doc2Vec are trained on **train-only benign** data
-
-> **Data note:** original paper datasets are often not publicly available.  
-> This repo is designed to reproduce the *methodology* on an alternative provenance dataset (e.g., Detection24 converted to CSV),
-> while enforcing **stronger no-leakage constraints** than many naive reproductions.
-
-We reproduce the experiments using the **detection24 provenance dataset**,
-which consists of real-world provenance graphs collected from benign and
-malicious executions.
-
-Unlike synthetic or feature-only datasets, detection24 preserves
-fine-grained graph structure and temporal ordering, enabling faithful
-reproduction of the original pipeline:
-Graph CSV → Path Extraction → Doc2Vec → LOF.
-
-
-Project directory structure
-```
-ProvDetector-Reproduction/
-├── data/
-│   └── detection24/
-│       ├── README.md              # 数据来源与说明（非常重要）
-│       ├── benign/
-│       │   ├── erinyes_n_1-.csv
-│       │   ├── erinyes_n_1-unknown.csv
-│       │   └── ...
-│       ├── malicious/
-│       │   ├── erinyes_a_1.csv
-│       │   └── ...
-│       └── LICENSE.txt            # 如果原作者给了许可文本
-│
-├── scripts/
-│   ├── split_csv_by_rows_sorted_time.py
-│   └── ...
-│
-├── train_group_split_noleak_robust.py
-├── feature_extractor.py
-├── data_loader.py
-├── requirements.txt
-├── README.md                      # 主 README
-└── reproduction.md                # 论文复现说明（强烈建议）
-```
 ---
 
-## 1) Installation
+## 1. 你现在算“复现成功”了吗？
+
+以“能否复现论文核心方法 + 指标量级是否一致 + 实验设置是否严谨（尤其是避免泄漏）”为标准，当前结果满足：
+
+- ✅ **方法链条复现**：Path 提取 → 句子化 → 频次库 → 罕见路径选择 → Doc2Vec → LOF。
+- ✅ **数据泄漏控制**：使用 `train_group_split_noleak_robust.py`，**先切分，再仅用训练集（且仅训练 benign）来构建频次库与训练 Doc2Vec**。
+- ✅ **评估稳定**：汇总的 20 个 seed，F1 平均约 **0.9648 ± 0.0125**，与论文报告的 ~0.974 同一量级。
+
+注意：
+
+1) 并非“论文原始数据集上的逐点复现”。
+2) 指标非常高（甚至有 seed 接近 1.0），可能原因是数据本身可分性较强；所以本项目：
+   - 做了 leak-free；
+   - 用多 seed 报告均值±方差；
+   - 给出复现脚本与固定随机性。
+
+---
+
+## 2.怎么判定 benign / malicious？
+
+文件名规则：
+
+- `erinyes_n_*.log`：**benign（normal）**
+- `erinyes_a_*.log`：**malicious / anomaly（attack）**
+
+本仓库把这些日志复制到了：
+
+- `data/detection24/raw_logs/G_log/`
+
+并额外提供了：
+
+- `data/detection24/benign/*.csv`（转换后的 benign 图）
+- `data/detection24/malicious/*.csv`（转换后的 malicious 图）
+- `data/detection24/benign_split10/*.csv`（benign 切分扩充后的样本）
+
+> 为什么需要 benign 切分扩充？
+> benign 原始文件数较少（最初只有 12 个 benign CSV），
+> 对 LOF 这种“仅在 benign 上拟合”的无监督方法不友好。
+> 我们采用“按 timestamp 排序后按行切分”为一种工程化扩充手段。
+
+---
+
+## 3. 环境与依赖
+
+推荐使用 Conda：
 
 ```bash
-python -m venv .venv
-source .venv/bin/activate
+conda create -n provdetector python=3.11 -y
+conda activate provdetector
 pip install -r requirements.txt
 ```
 
+关键依赖：
+- `scikit-learn`（LOF + 评估）
+- `gensim`（Doc2Vec）
+
+可选：
+- `imbalanced-learn`（SMOTE，默认不需要；LOF 按论文方法只用 benign 拟合）
+
 ---
 
-## 2) Data preparation (not included)
+## 4. 一键复现（推荐：Leak-Free + Group Split）
 
-Place your CSV graphs under:
-
-- `data/detection24/benign/` (or `data/detection24/benign_split10/`)
-- `data/detection24/malicious/`
-
-See `data/README.md` for expected schema.
-
-### Optional: split benign into more samples (time-sorted)
-
-If you only have a few benign sessions, you may split each benign CSV into time-sorted chunks:
+### 4.1 单次运行
 
 ```bash
-python scripts/split_csv_by_rows_sorted_time.py   --in-dir data/detection24/benign   --out-dir data/detection24/benign_split10   --parts 10 --min-rows 5
+python train_group_split_noleak_robust.py \
+  --benign-dir data/detection24/benign_split10 \
+  --malicious-dir data/detection24/malicious \
+  --detector lof \
+  --top-k-paths 20 --vector-size 100 --epochs 50 \
+  --lof-contamination 0.04 --lof-n-neighbors 10 \
+  --split-mode group \
+  --group-regex '_p\\d+$' \
+  --test-size 0.2 \
+  --split-seed 42 \
+  --group-split-tries 200 \
+  --seed 42 \
+  --d2v-workers 1 \
+  --output-dir outputs/run_seed42
+```
+
+运行结束会生成：
+
+- `outputs/run_seed42/test_metrics.json`
+- `outputs/run_seed42/frequency_database.pkl`
+- `outputs/run_seed42/doc2vec_model.model`
+- `outputs/run_seed42/lof_model.joblib`
+
+### 4.2 多 seed 稳健性复现
+
+```bash
+bash scripts/run_multiseed.sh \
+  data/detection24/benign_split10 \
+  data/detection24/malicious \
+  outputs/multiseed
+
+python scripts/summarize_metrics.py outputs/multiseed/models_detection24_group_robust_seed*/test_metrics.json
+```
+
+建议在论文/README 中报告：
+- F1 mean ± std
+- min / max
+- 以及每个 seed 的 confusion matrix（或至少 TN/FP/FN/TP）
+
+---
+
+## 5. 如果你想从“原始 Detection24 logs”重新生成 CSV
+
+仓库已内置转换结果；如果你想验证转换过程或更新数据，执行：
+
+```bash
+python scripts/convert_detection24_glog_to_csv.py \
+  --benign-log-dir data/detection24/raw_logs/G_log \
+  --malicious-log-dir data/detection24/raw_logs/G_log \
+  --benign-out data/detection24/benign \
+  --malicious-out data/detection24/malicious
+
+python scripts/split_csv_by_rows_sorted_time.py \
+  --in-dir data/detection24/benign \
+  --out-dir data/detection24/benign_split10 \
+  --parts 10 --min-rows 5
 ```
 
 ---
 
-## 3) Run a single leak-free training/eval (recommended)
+## 6. 复现严谨性清单
 
-```bash
-python scripts/train_group_split_noleak_robust.py   --benign-dir data/detection24/benign_split10   --malicious-dir data/detection24/malicious   --detector lof   --top-k-paths 20 --vector-size 100 --epochs 50   --lof-contamination 0.04 --lof-n-neighbors 10   --split-mode group --group-regex '_p\d+$' --test-size 0.2   --split-seed 42 --group-split-tries 200   --seed 42 --d2v-workers 1   --output-dir results/seed42
+- [x] Train/Test 切分：**Group split**，避免 `_pN.csv` 切分片段跨集合泄漏
+- [x] 表征学习：频次库 + Doc2Vec **仅用训练集 benign**（对应论文“学习正常行为”）
+- [x] 模型拟合：LOF **仅在训练集 benign 上 fit**
+- [x] 随机性：提供 `--seed`、固定 `d2v-workers=1`（尽量减少非确定性）
+- [x] 稳健性：多 seed 报告均值±方差
+
+---
+
+## 7. 引用与许可
+
+- 代码：MIT（见 `LICENSE`）
+
+---
+
+## 8. 目录结构
+
+```
+.
+├── data/
+│   └── detection24/
+│       ├── raw_logs/G_log/          # 原始 *.log
+│       ├── benign/                  # 转换后的 benign CSV
+│       ├── malicious/               # 转换后的 malicious CSV
+│       └── benign_split10/          # benign 切分扩充样本
+├── scripts/
+│   ├── convert_detection24_glog_to_csv.py
+│   ├── split_csv_by_rows_sorted_time.py
+│   ├── run_multiseed.sh
+│   └── summarize_metrics.py
+├── train_group_split_noleak_robust.py
+└── ...
 ```
 
-Outputs (under `results/seed42/`):
-
-- `frequency_database.pkl`
-- `doc2vec_model.model`
-- `lof_model.joblib`
-- `test_metrics.json`
-
----
-
-## 4) Multi-seed robustness (recommended for reporting)
-
-```bash
-bash scripts/run_multiseed.sh   data/detection24/benign_split10   data/detection24/malicious   results/multiseed   "1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18 19 20"
-```
-
-Summarize:
-
-```bash
-python scripts/summarize_multiseed.py results/multiseed
-```
-
----
-
-## 5) Reproducibility checklist
-
-- `--split-mode group` + `--group-regex '_p\d+$'` prevents fragment leakage
-- Frequency DB + Doc2Vec trained on **train benign only**
-- `--d2v-workers 1` reduces nondeterminism
-- `--seed` and `--split-seed` allow controlled repeats
-
----
-
-## Citation
-
-If you use this reproduction in academic work, please cite the original paper and link this repository in your artifact section.
-
----
-
-## License
-
-MIT (see `LICENSE`).
+更多数据细节见：`data/README.md`。
