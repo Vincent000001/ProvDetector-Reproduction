@@ -1,0 +1,8 @@
+['10.1.80.247:59598', 'socket', 'unknwon', 'process', 'POST', 1727687757583086, 'e3f5e9cd']
+['unknwon', 'process', 'gateway:8080', 'socket', 'POST', 1727687757942057, 'e3f5e9cd']
+['unknwon', 'process', '10.1.80.247:8080', 'socket', 'POST', 1727687757942245, 'e3f5e9cd']
+['10.1.80.247:33096', 'socket', 'unknwon', 'process', 'POST', 1727687757969070, 'e3f5e9cd']
+['unknwon', 'process', '10.1.80.247:33096', 'socket', 'RESPONSE', 1727687758023152, 'e3f5e9cd']
+['10.1.80.247:8080', 'socket', 'unknwon', 'process', 'RESPONSE', 1727687758026395, 'e3f5e9cd']
+['gateway:8080', 'socket', 'unknwon', 'process', 'RESPONSE', 1727687758026471, 'e3f5e9cd']
+['unknwon', 'process', '10.1.80.247:59598', 'socket', 'RESPONSE', 1727687758068471, 'e3f5e9cd']
