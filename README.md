@@ -19,6 +19,31 @@ It implements the core pipeline:
 > This repo is designed to reproduce the *methodology* on an alternative provenance dataset (e.g., Detection24 converted to CSV),
 > while enforcing **stronger no-leakage constraints** than many naive reproductions.
 
+Project directory structure
+ProvDetector-Reproduction/
+├── data/
+│   └── detection24/
+│       ├── README.md              # 数据来源与说明（非常重要）
+│       ├── benign/
+│       │   ├── erinyes_n_1-.csv
+│       │   ├── erinyes_n_1-unknown.csv
+│       │   └── ...
+│       ├── malicious/
+│       │   ├── erinyes_a_1.csv
+│       │   └── ...
+│       └── LICENSE.txt            # 如果原作者给了许可文本
+│
+├── scripts/
+│   ├── split_csv_by_rows_sorted_time.py
+│   └── ...
+│
+├── train_group_split_noleak_robust.py
+├── feature_extractor.py
+├── data_loader.py
+├── requirements.txt
+├── README.md                      # 主 README
+└── reproduction.md                # 论文复现说明（强烈建议）
+
 ---
 
 ## 1) Installation
