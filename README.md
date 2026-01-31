@@ -1,33 +1,37 @@
-# ProvDetector 论文复现实验
+# ProvDetector 论文复现实验（Detection24 数据集）
 
 > 目标：**完整、严谨、可复现**地复现 ProvDetector 论文中“Path→Sentence → 频次库 → Rarest Paths → Doc2Vec(PV-DM) → LOF”这一条核心流水线，
 > 并给出**可重复跑出的指标**与**避免数据泄漏**的实现细节。
 
-本仓库已经内置真实数据，做到**开箱即跑**。
+本仓库已经内置 **Detection24** 的真实数据（你已获得原作者许可），做到**开箱即跑**。
 
 ---
 
 ## 1. 你现在算“复现成功”了吗？
 
-以“能否复现论文核心方法 + 指标量级是否一致 + 实验设置是否严谨（尤其是避免泄漏）”为标准，当前结果满足：
+以“能否复现论文核心方法 + 指标量级是否一致 + 实验设置是否严谨（尤其是避免泄漏）”为标准，你当前结果满足：
 
 - ✅ **方法链条复现**：Path 提取 → 句子化 → 频次库 → 罕见路径选择 → Doc2Vec → LOF。
 - ✅ **数据泄漏控制**：使用 `train_group_split_noleak_robust.py`，**先切分，再仅用训练集（且仅训练 benign）来构建频次库与训练 Doc2Vec**。
-- ✅ **评估稳定**：汇总的 20 个 seed，F1 平均约 **0.9648 ± 0.0125**，与论文报告的 ~0.974 同一量级。
+- ✅ **评估稳定**：你汇总的 20 个 seed，F1 平均约 **0.9648 ± 0.0125**，与论文报告的 ~0.974 同一量级。
 
-注意：
+注意两点“科研口径”的严谨表述：
 
-1) 并非“论文原始数据集上的逐点复现”。
-2) 指标非常高（甚至有 seed 接近 1.0），可能原因是数据本身可分性较强；所以本项目：
-   - 做了 leak-free；
-   - 用多 seed 报告均值±方差；
-   - 给出复现脚本与固定随机性。
+1) 你现在复现的是**论文方法在 Detection24 数据上的可重复结果**，并非“论文原始数据集上的逐点复现”。
+2) 你的指标非常高（甚至有 seed 接近 1.0），这可能来自 **Detection24 任务本身可分性较强**；因此你在 README 里应该明确：
+   - 你做了 leak-free；
+   - 你用多 seed 报告均值±方差；
+   - 你给出复现脚本与固定随机性。
 
 ---
 
-## 2.怎么判定 benign / malicious？
+## 2. 数据集来自哪里？怎么判定 benign / malicious？
 
-文件名规则：
+Detection24 仓库中，我们使用：
+
+- `detection24-main/ProvDetector-mysql/G_log/` 下的 `*.log`
+
+文件名规则（与你截图一致）：
 
 - `erinyes_n_*.log`：**benign（normal）**
 - `erinyes_a_*.log`：**malicious / anomaly（attack）**
@@ -43,7 +47,7 @@
 - `data/detection24/benign_split10/*.csv`（benign 切分扩充后的样本）
 
 > 为什么需要 benign 切分扩充？
-> benign 原始文件数较少（最初只有 12 个 benign CSV），
+> Detection24 的 benign 原始文件数较少（你最初只有 12 个 benign CSV），
 > 对 LOF 这种“仅在 benign 上拟合”的无监督方法不友好。
 > 我们采用“按 timestamp 排序后按行切分”为一种工程化扩充手段。
 
@@ -133,7 +137,7 @@ python scripts/split_csv_by_rows_sorted_time.py \
 
 ---
 
-## 6. 复现严谨性清单
+## 6. 复现严谨性清单（建议你在论文/仓库里写清楚）
 
 - [x] Train/Test 切分：**Group split**，避免 `_pN.csv` 切分片段跨集合泄漏
 - [x] 表征学习：频次库 + Doc2Vec **仅用训练集 benign**（对应论文“学习正常行为”）
@@ -146,6 +150,9 @@ python scripts/split_csv_by_rows_sorted_time.py \
 ## 7. 引用与许可
 
 - 代码：MIT（见 `LICENSE`）
+- 数据：Detection24 原作者已允许你在本仓库中使用/分发；请在你公开 GitHub 前，补充：
+  - Detection24 的引用信息（论文/仓库链接）
+  - 数据许可说明（哪条邮件/issue/statement授权，最好截图或引用说明文本）
 
 ---
 
