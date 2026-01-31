@@ -19,6 +19,16 @@ It implements the core pipeline:
 > This repo is designed to reproduce the *methodology* on an alternative provenance dataset (e.g., Detection24 converted to CSV),
 > while enforcing **stronger no-leakage constraints** than many naive reproductions.
 
+We reproduce the experiments using the **detection24 provenance dataset**,
+which consists of real-world provenance graphs collected from benign and
+malicious executions.
+
+Unlike synthetic or feature-only datasets, detection24 preserves
+fine-grained graph structure and temporal ordering, enabling faithful
+reproduction of the original pipeline:
+Graph CSV → Path Extraction → Doc2Vec → LOF.
+
+
 Project directory structure
 ```
 ProvDetector-Reproduction/
