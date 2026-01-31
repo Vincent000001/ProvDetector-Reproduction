@@ -1,0 +1,9 @@
+sourceId,sourceType,destinationId,destinationType,action,timestamp,processName
+10.1.80.1:36222,socket,/usr/bin/fwatchdog,process,read,1727659788651139,unknown
+/usr/bin/fwatchdog,process,10.1.80.1:36222,socket,write,1727659788651295,unknown
+10.1.80.1:36220,socket,/usr/bin/fwatchdog,process,read,1727659788651352,unknown
+/usr/bin/fwatchdog,process,10.1.80.1:36220,socket,write,1727659788651413,unknown
+10.1.80.1:37778,socket,/usr/bin/fwatchdog,process,read,1727659788789897,unknown
+/usr/bin/fwatchdog,process,10.1.80.1:37778,socket,write,1727659788790049,unknown
+10.1.80.1:37776,socket,/usr/bin/fwatchdog,process,read,1727659788790109,unknown
+/usr/bin/fwatchdog,process,10.1.80.1:37776,socket,write,1727659788790167,unknown

@@ -1,0 +1,7 @@
+sourceId,sourceType,destinationId,destinationType,action,timestamp,processName
+unknwon,process,10.1.80.1:53046,socket,RESPONSE,1727688484389507,
+10.1.80.1:35817,socket,unknown,process,GET,1727688484561075,
+unknwon,process,10.1.80.1:35817,socket,RESPONSE,1727688484561259,
+10.1.80.1:35816,socket,unknown,process,GET,1727688484561404,
+unknwon,process,10.1.80.1:35816,socket,RESPONSE,1727688484561493,
+10.1.80.1:34749,socket,unknown,process,GET,1727688484651425,
