@@ -1,6 +1,6 @@
 # 数据说明（Detection24）
-
-本复现实验**仅使用 Detection24** 数据（不混用 ProvNinja），原因：
+除了Detection24，另外一个项目ProvNinja也有给出数据
+本复现实验**仅使用 Detection24 https://github.com/JinyuChata/detection24** 数据（不混用 ProvNinja https://github.com/syssec-utd/provninja/tree/main/intrusion-detection-system/path-based/sample-enterprise-data），原因：
 - 两者采集/特征工程链条不同（ProvNinja 的 `*-fv.csv` 是“已经抽好的 50 维特征”，而本复现需要从**图边 CSV**走完整 ProvDetector 流水线）。
 - 直接混用会引入不可控偏差，不满足“严谨复现论文实验”的要求。
 
@@ -16,7 +16,7 @@
  └── benign_split10/          # 将 benign/ 中每个 CSV 按时间排序后按行数切分（用于扩充 benign 样本数）
 ```
 
-**文件命名约定（与你截图一致）**
+**文件命名约定**
 - `erinyes_n_*`：benign（normal）
 - `erinyes_a_*`：malicious / anomaly
 
@@ -42,8 +42,8 @@ CSV 列（固定输出）：
 
 ## 为什么要做 benign_split10？会不会“作弊”？
 
-Detection24 原始 benign 文件数较少（你的实验里是 12 个）。而 ProvDetector 论文通常在大量 benign 上训练 LOF。
-为了让 LOF 的“正常分布”更稳定，你采用了“按时间排序后切片”来扩充 benign 样本数（例如 116 个片段）。
+Detection24 原始 benign 文件数较少（实验里是 12 个）。而 ProvDetector 论文通常在大量 benign 上训练 LOF。
+为了让 LOF 的“正常分布”更稳定，采用了“按时间排序后切片”来扩充 benign 样本数（例如 116 个片段）。
 
 这本质上是**数据增强**，不是论文原文的一部分。
 
@@ -101,7 +101,7 @@ python scripts/split_csv_by_rows_sorted_time.py \
 ## 你不应该混用 ProvNinja 的 `sample-enterprise-data`
 
 ProvNinja 的 `intrusion-detection-system/path-based/sample-enterprise-data` 里有两类文件：
-- `*-fv.csv`：已经抽好的 50 维特征（适合你写的 `train_lof_from_fv.py`）
+- `*-fv.csv`：已经抽好的 50 维特征
 - `*-paragraph.csv`：文本段落特征/描述
 
 它们**不等价于 ProvDetector 论文中用的原始图边**，也没有“同一套 Path→Sentence→Doc2Vec”链条。
