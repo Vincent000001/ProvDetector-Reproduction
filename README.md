@@ -77,7 +77,9 @@ pip install -r requirements.txt
 ### 4.1 单次运行
 
 ```bash
-python train_group_split_noleak_robust.py \
+cd ProvDetector-Reproduction-main
+
+python scripts/train_group_split_noleak_robust.py \
   --benign-dir data/detection24/benign_split10 \
   --malicious-dir data/detection24/malicious \
   --detector lof \
@@ -91,6 +93,7 @@ python train_group_split_noleak_robust.py \
   --seed 42 \
   --d2v-workers 1 \
   --output-dir outputs/run_seed42
+
 ```
 
 运行结束会生成：
